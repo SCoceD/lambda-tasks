@@ -3,25 +3,22 @@ const fs = require("fs");
 
 const arrOfSetsFromAllFile = [];
 const setUniqNames = new Set();
+
 const uniqueValues = async () => {
     const path = __dirname + '/files/';
     const start = new Date().getTime();
     let fileNames = fs.readdirSync(path);
-    let dataPromises = [];
-    for (let i = 0; i < fileNames.length; i++) {
-        // let data = fsa.readFileSync('/home/apolieshchuk/Downloads/lambda/files/out' + i + '.txt', 'utf8');
-        // data.split('\n').forEach(element => setUniqNames.add(element))
-        dataPromises.push(fsa.readFile(path + fileNames[i], 'utf8')
-            .then(data => data.split('\n').forEach(element => setUniqNames.add(element))
-            )
-        );
-    }
-    await Promise.all(dataPromises);
-    console.log('Уникальных словосочетаний: ' + setUniqNames.size)
-    console.log('Time of work: ' + (new Date().getTime() - start));
+    // for (let i = 0; i < fileNames.length; i++) {
+    // let data = fsa.readFileSync(__dirname + 'out' + i + '.txt', 'utf8');
+    // data.split('\n').forEach(element => setUniqNames.add(element))}
+    await Promise.all(fileNames.map((item) => fsa.readFile(path + item, 'utf8')
+        .then(data => data.split('\n').forEach(element => setUniqNames.add(element))))
+    );
+console.log('Уникальных словосочетаний: ' + setUniqNames.size)
+console.log('Time of work: ' + (new Date().getTime() - start));
 }
 
-const existInAllFiles = async () => {
+const existInTwentyFiles = async () => {
     const path = __dirname + '/files/';
     const start = new Date().getTime();
     let fileNames = fs.readdirSync(path);
@@ -79,6 +76,6 @@ async function parseNames() {
 
 (async () => {
     await uniqueValues()
-    await existInAllFiles();
+    await existInTwentyFiles();
     await existInAtLeastTen();
 })()
