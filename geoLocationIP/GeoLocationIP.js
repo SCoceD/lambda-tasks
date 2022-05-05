@@ -1,59 +1,67 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 const express = require('express');
+const {PATH, PORT} = require("./src/constants");
 const app = express();
-const port = 3000;
 
-const path = __dirname + '/public/IP2LOCATION-LITE-DB1.CSV';
-const ipList = new Map;
+const ipsMap = new Map;
 
 app.get('/', (req, res) => {
-    let result = req.headers['x-forwarded-for'] ||
-        req.socket.remoteAddress ||
-        null;
-    let clientIP = ip2int(result);
-    ipList.forEach(item => {
-        if (clientIP >= +item.start && clientIP <= +item.end) {
-            result += ' ' + item.countryName + ' ';
-        }
-    })
-    res.send(result);
+    getIp(req, res);
 })
 
 const parseIpList = () => {
-    const date = Date.now();
-    // fs.createReadStream(path)
-    //     .pipe(csv())
-    //     .on('data', (row) => {
-    //         ipList.set(row.start, row)
-    //     })
-    //     .on('end', () => {
-    //     })
+    const startTime = Date.now();
     let columns;
-    fs.readFileSync(path, 'utf8').split(/\r?\n/).forEach((item, indexs) => {
-        let o = {};
-        item = Array.from(item.replace(/"/g, '').split(','));
-        if (!columns) {
-            columns = item;
-        }
-        columns.forEach(async (element, index) => {
-            Object.defineProperty(o, element, {
-                value: item[index],
-                writable: true,
-                enumerable: true,
-                configurable: true
+
+    try {
+        console.log(PATH);
+        fs
+            .readFileSync(PATH, 'utf8')
+            .split(/\r?\n/)
+            .forEach(item => {
+                const obj = {};
+                const line = item.replace(/"/g, '').split(',');
+
+                if (!columns) {
+                    columns = line;
+                }
+
+                columns.forEach((key, index) => obj[key] = line[index]);
+                ipsMap.set(`${obj.start}-${obj.end}`, obj.countryName);
             })
-        });
-        ipList.set(o.start, o)
-    })
-    console.log(Date.now() - date);
+    } catch (err) {
+        console.error(err);
+    }
+
+    const end = Date.now();
+
+    console.log(end - startTime);
+    return ipsMap;
 }
 
 const ip2int = (ip) => {
-    return ip.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
+    return ip.split('.').reduce((accumulator, currentValue) =>
+        (accumulator << 8) + parseInt(currentValue, 10), 0) >>> 0;
 }
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-    parseIpList()
+const getIp = (req, res) => {
+    const clientIp = req.headers['x-forwarded-for'] ||
+        req.socket.remoteAddress;
+    const originalIP = ip2int(clientIp);
+
+    const ipKey = [...ipsMap.keys()].find(key => {
+        const ips = key.split('-');
+        return originalIP >= +ips[0] && originalIP <= +ips[1];
+    });
+
+    const countryName = ipsMap.get(ipKey);
+    res.json({
+        ipInfo: clientIp + (countryName ? ' - ' + countryName : '')
+    });
+}
+
+parseIpList()
+app.listen(PORT, () => {
+    console.log(`Example app listening on port ${PORT}`)
 })
