@@ -1,24 +1,28 @@
 const fsa = require("fs").promises;
 const fs = require("fs");
 
-const arrOfSetsFromAllFile = [];
-const setUniqNames = new Set();
+let arrOfSetsFromAllFile;
+let setUniqNames;
 
 const uniqueValues = async () => {
+    setUniqNames = new Set();
     const path = __dirname + '/files/';
     const start = new Date().getTime();
-    let fileNames = fs.readdirSync(path);
-    // for (let i = 0; i < fileNames.length; i++) {
-    // let data = fsa.readFileSync(__dirname + 'out' + i + '.txt', 'utf8');
-    // data.split('\n').forEach(element => setUniqNames.add(element))}
+    const fileNames = fs.readdirSync(path);
+
     await Promise.all(fileNames.map((item) => fsa.readFile(path + item, 'utf8')
         .then(data => data.split('\n').forEach(element => setUniqNames.add(element))))
-    );
-console.log('Уникальных словосочетаний: ' + setUniqNames.size)
-console.log('Time of work: ' + (new Date().getTime() - start));
+    ).then(() => {
+        const end = new Date().getTime();
+
+        console.log('Уникальных словосочетаний: ' + setUniqNames.size);
+        console.log('Time of work: ' + (end - start));
+    })
 }
 
 const existInTwentyFiles = async () => {
+    arrOfSetsFromAllFile = []
+    setUniqNames = new Set()
     const path = __dirname + '/files/';
     const start = new Date().getTime();
     let fileNames = fs.readdirSync(path);
@@ -40,6 +44,8 @@ const existInTwentyFiles = async () => {
 }
 
 const existInAtLeastTen = async () => {
+    arrOfSetsFromAllFile = []
+    setUniqNames = new Set()
     const start = new Date().getTime();
     let tenOrMore = 0;
     await parseNames();
@@ -62,20 +68,20 @@ async function parseNames() {
     const path = __dirname + '/files/'
     let fileNames = fs.readdirSync(path);
     let dataPromises = [];
-    for (let i = 0; i < fileNames.length; i++) {
+    fileNames.forEach(item => {
         const setOfName = new Set();
-        dataPromises.push(fsa.readFile(path + fileNames[i], 'utf8')
+        dataPromises.push(fsa.readFile(path + item, 'utf8')
             .then(data => data.split('\n').forEach(element => {
                 setOfName.add(element);
                 setUniqNames.add(element);
             })));
-        arrOfSetsFromAllFile.push(setOfName);
-    }
+        arrOfSetsFromAllFile.push(setOfName)
+    });
     await Promise.all(dataPromises);
 }
 
-(async () => {
+(async function () {
     await uniqueValues()
     await existInTwentyFiles();
     await existInAtLeastTen();
-})()
+}())
