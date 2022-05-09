@@ -1,0 +1,9 @@
+const {processRequest} = require("../controlers/controller");
+const {Router} = require("express");
+const router = Router();
+
+router.post('/', (req, res) => {
+    processRequest(req, res);
+})
+
+module.exports = router;
