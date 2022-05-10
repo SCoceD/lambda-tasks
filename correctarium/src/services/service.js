@@ -12,18 +12,17 @@ const getPrice = (req) => {
     const minPrice = (req.body.language === 'en' ? MIN_EN : MIN_UKR_RUS) * multiplicator;
     let result = req.body.count * priceForOneChar * multiplicator;
     result = result > minPrice ? result : minPrice;
+
     return result;
 }
 
 const getDeadLine = (req) => {
     const multiplicator = MIME_TYPE.includes(req.body.mimetype) ? 1 : MULTIPLICATION_FOR_OTHER_FILE_TYPE;
-
     const MsForOneChar = req.body.language === 'en' ? EN_MS_FOR_ONE_CHAR : UKR_RUS_MS_FOR_ONE_CHAR;
-
     let timeForProcess = MsForOneChar * req.body.count * multiplicator;
-
     timeForProcess = timeForProcess < ONE_HOUR_IN_SECONDS ? ONE_HOUR_IN_SECONDS : timeForProcess
     const dataOfEndOfTheWork = getDeadLineFormattedDate(timeForProcess);
+
     return {
         'time': timeForProcess / MS_IN_HOUR < 1 ? 1 : (timeForProcess / MS_IN_HOUR).toFixed(3),
         'deadline': moment(dataOfEndOfTheWork).unix(),
@@ -34,8 +33,11 @@ const getDeadLine = (req) => {
 function getDeadLineFormattedDate(timeToWork, currentDate) {
     let result;
     currentDate = currentDate !== undefined ? currentDate : moment();
-    if (currentDate.day() > 5 || currentDate.day() < 1 || currentDate.hour() < START_WORKING_DAY || currentDate.hour() >= END_WORKING_DAY) {
-        while (currentDate.day() > 5 || currentDate.day() < 1 || currentDate.hour() < START_WORKING_DAY || currentDate.hour() >= END_WORKING_DAY) {
+
+    if (currentDate.day() > 5 || currentDate.day() < 1
+        || currentDate.hour() < START_WORKING_DAY || currentDate.hour() >= END_WORKING_DAY) {
+        while (currentDate.day() > 5 || currentDate.day() < 1
+        || currentDate.hour() < START_WORKING_DAY || currentDate.hour() >= END_WORKING_DAY) {
             currentDate.add(1, 'h')
         }
         currentDate = currentDate.set({
@@ -43,7 +45,9 @@ function getDeadLineFormattedDate(timeToWork, currentDate) {
             second: 0,
         });
     }
-    let timeToEndOfTheDay = (END_WORKING_DAY * MS_IN_HOUR - ((currentDate.hour() * MS_IN_HOUR) + (currentDate.minute() * MS_iN_MINUTE) + (currentDate.second() * 1000)));
+    let timeToEndOfTheDay = (END_WORKING_DAY * MS_IN_HOUR
+        - ((currentDate.hour() * MS_IN_HOUR) + (currentDate.minute() * MS_iN_MINUTE) + (currentDate.second() * 1000)));
+
     if (timeToWork < timeToEndOfTheDay) {
         result = currentDate + timeToWork;
     } else {
