@@ -1,4 +1,4 @@
-const {JWT_ACCESS_SECRET} = require("../constants/constants");
+const {JWT_REFRESH_SECRET} = require("../constants/constants");
 const {jwt} = require("../services/tokenService");
 
 const authenticateJWT = (req, res, next) => {
@@ -6,7 +6,7 @@ const authenticateJWT = (req, res, next) => {
 
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-        jwt.verify(token, JWT_ACCESS_SECRET, (err, user) => {
+        jwt.verify(token, JWT_REFRESH_SECRET, (err, user) => {
             if (err) {
                 console.log(err.message);
                 return res.sendStatus(403);

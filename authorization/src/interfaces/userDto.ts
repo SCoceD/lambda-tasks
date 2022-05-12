@@ -1,5 +1,5 @@
 export default interface UserDto {
-    email: string;
-    password: string;
-    refreshToken: string;
+  email: string;
+  password: string;
+  refreshToken: string;
 }

@@ -2,7 +2,8 @@ const {Router} = require("express");
 const {MongoClient} = require("mongodb");
 const {generateToken, jwt} = require("../services/tokenService");
 const authenticateJWT = require("../middlewares/authenticateJWT");
-const {JWT_REFRESH_SECRET} = require("../constants/constants");
+const {JWT_REFRESH_SECRET, JWT_ACCESS_SECRET} = require("../constants/constants");
+const authenticateRefreshJWT = require("../middlewares/authenticateRefreshJWT");
 const router = Router();
 let db;
 
@@ -19,10 +20,12 @@ router.get('/', (req, res) => {
     res.send('Hello')
 })
 
-router.get('/me', authenticateJWT, (req, res) => {
-
+router.get('/me:number', authenticateJWT, (req, res) => {
     return res.json({
-        email: 'email',
+        request_num: req.params.number,
+        data: {
+            username: jwt.verify(req.headers.authorization.split(' ')[1], JWT_ACCESS_SECRET, {ignoreExpiration: true}).userEmail
+        },
     });
 })
 
@@ -54,14 +57,17 @@ router.post('/login', async (req, res) => {
     return res.status(401).send('login or password incorrect');
 });
 
-router.post('/refresh', authenticateJWT, async (req, res) => {
-    const email = jwt.verify(req.headers.authorization.split(' ')[1], JWT_REFRESH_SECRET, {ignoreExpiration: true}).userEmail;
+router.post('/refresh', authenticateRefreshJWT, async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const email = jwt.verify(token, JWT_REFRESH_SECRET, {ignoreExpiration: true}).userEmail;
     const user = await db.collection('authorization').findOne({email});
-    const userEmail = user.email;
-    const {accessToken, refreshToken} = generateToken({userEmail});
 
-    db.collection('authorization').updateOne({email: userEmail}, {$set: {refreshToken: refreshToken}});
+    if (user.refreshToken === token) {
+        const {accessToken, refreshToken} = generateToken({email});
+        db.collection('authorization').updateOne({email: email}, {$set: {refreshToken: refreshToken}});
+        return res.status(200).json({accessToken, refreshToken});
+    }
 
-    return res.status(200).json({accessToken, refreshToken});
+    return res.status(401);
 })
 module.exports = router;
