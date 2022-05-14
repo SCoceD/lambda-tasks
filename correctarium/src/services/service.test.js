@@ -1,6 +1,4 @@
-const processRequest = require('./service');
 const {getPrice, getDeadLine} = require("./service");
-const moment = require("moment");
 
 test('0 count', () => {
     const req = {
@@ -57,9 +55,6 @@ test('1000 count rus language', () => {
     expect(getPrice(req)).toEqual(500)
 })
 
-//
-//  file Type                                                                        //TODO TODO TODO
-//
 test('1000 count another language', () => {
     const req = {
         body: {
@@ -71,10 +66,6 @@ test('1000 count another language', () => {
     expect(() => getPrice(req)).toThrow(TypeError)
 })
 
-
-//
-//  for empty                                                                        //TODO TODO TODO
-//
 test('for empty parameters', () => {
     const req = {
         body: {
