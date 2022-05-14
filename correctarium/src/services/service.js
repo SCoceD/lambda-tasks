@@ -6,11 +6,18 @@ const {
 const moment = require("moment");
 
 
-const getPrice = (req) => {
-    const multiplicator = MIME_TYPE.includes(req.body.mimetype) ? 1 : MULTIPLICATION_FOR_OTHER_FILE_TYPE;
-    const priceForOneChar = req.body.language === 'en' ? EN_PRICE : UKR_RUS_PRICE;
-    const minPrice = (req.body.language === 'en' ? MIN_EN : MIN_UKR_RUS) * multiplicator;
-    let result = req.body.count * priceForOneChar * multiplicator;
+const getPrice = ({state, body}) => {
+    const multiplicator = MIME_TYPE.includes(body.mimetype) ? 1 : MULTIPLICATION_FOR_OTHER_FILE_TYPE;
+
+    if (body.language !== 'en' && body.language !== 'ukr' && body.language !== 'rus') {
+        throw new TypeError('bad parameters');
+    }
+    const priceForOneChar = body.language === 'en' ? EN_PRICE : UKR_RUS_PRICE;
+
+    const minPrice = (body.language === 'en' ? MIN_EN : MIN_UKR_RUS) * multiplicator;
+
+    let result = body.count * priceForOneChar * multiplicator;
+
     result = result > minPrice ? result : minPrice;
 
     return result;
@@ -22,11 +29,10 @@ const getDeadLine = (req) => {
     let timeForProcess = MsForOneChar * req.body.count * multiplicator;
     timeForProcess = timeForProcess < ONE_HOUR_IN_SECONDS ? ONE_HOUR_IN_SECONDS : timeForProcess
     const dataOfEndOfTheWork = getDeadLineFormattedDate(timeForProcess);
-
     return {
         'time': timeForProcess / MS_IN_HOUR < 1 ? 1 : (timeForProcess / MS_IN_HOUR).toFixed(3),
-        'deadline': moment(dataOfEndOfTheWork).unix(),
-        'deadline_date': dataOfEndOfTheWork
+        'deadline': Date.parse(dataOfEndOfTheWork),
+        'deadline_date': moment(dataOfEndOfTheWork).format("DD/MM/yyyy HH:mm:ss")
     };
 }
 
@@ -57,7 +63,7 @@ function getDeadLineFormattedDate(timeToWork, currentDate) {
         return getDeadLineFormattedDate(timeToWork, moment(currentDate));
     }
 
-    return moment(result).format("DD/MM/yyyy HH:mm:ss");
+    return moment(result);
 }
 
 module.exports = {

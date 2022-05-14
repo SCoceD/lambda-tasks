@@ -1,9 +1,7 @@
-const {processRequest} = require("../controlers/controller");
+const {index} = require("../controlers/controller");
 const {Router} = require("express");
 const router = Router();
 
-router.post('/', (req, res) => {
-    processRequest(req, res);
-})
+router.post('/', index)
 
 module.exports = router;
