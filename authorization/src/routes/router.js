@@ -15,7 +15,6 @@ MongoClient.connect('mongodb://root:pass@localhost:27017', function (err, client
 })
 
 router.get('/', (req, res) => {
-
     db.collection('authorization').insertOne({_id: 2, scores: [44, 78, 38, 80]});
     res.send('Hello')
 })
