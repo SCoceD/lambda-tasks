@@ -1,2 +1,7 @@
 sss
 {"name": "s", "gender": "male", "age": "22"}
+{"name": "q", "gender": "male", "age": "e"}
+{"name": "s", "gender": "male", "age": "22"}
+{"name": "w", "gender": "male", "age": "33"}
+{"name": "s", "gender": "male", "age": ""}
+{"name": "exit", "gender": "male", "age": "exit"}
