@@ -1,16 +1,17 @@
-"use strict";
+import express from "express";
 import WeatherApi from "./weather/WeatherApi.js";
-
 import {Telegraf} from "telegraf";
-
+import ExchangeRate from "./weather/ExchangeRate.js";
 const BOT_TOKEN = '5434738654:AAFzpAsT6dGonyFOkxnYTqrrynedJ24-0BY';
-const MY_CHAT_ID = '5582557630';
+const PORT = process.env.PORT || 5000
+
+express()
+    .listen(PORT, () => console.log(`Listening on ${PORT}`))
+
 
 //
-// Создать бота с полученным ключом
-const bot = new Telegraf("5434738654:AAFzpAsT6dGonyFOkxnYTqrrynedJ24-0BY");
+const bot = new Telegraf(BOT_TOKEN);
 //
-// Обработчик начала диалога с ботом
 bot.start((ctx) => {
         ctx.reply(`Hello, ${
             ctx.from.first_name ? ctx.from.first_name : "gud guy"
@@ -18,12 +19,27 @@ bot.start((ctx) => {
             reply_markup: {
                 inline_keyboard: [
                     /* Inline buttons. 2 side-by-side */
-                    [{text: "Weather in Milwaukee", callback_data: "run"}]
+                    [{text: "Weather in Milwaukee", callback_data: "run"}],
+                    [{text: "Exchange Rate USD", callback_data: "usd"}
+                        , {text: "Exchange Rate EUR", callback_data: "eur"}]
                 ]
             }
         })
     }
 );
+
+bot.action("usd", async (ctx) => {
+    const exchangeRate = new ExchangeRate();
+    const result = await exchangeRate.getUSDExchangeRate();
+    ctx.reply(result);
+});
+
+bot.action("eur", async (ctx) => {
+    const exchangeRate = new ExchangeRate();
+    const result = await exchangeRate.getEURExchangeRate();
+    ctx.reply(result);
+});
+
 bot.action("run", (ctx) => {
     ctx.reply(`Приветствую, ${
         ctx.from.first_name ? ctx.from.first_name : "хороший человек"
@@ -31,10 +47,8 @@ bot.action("run", (ctx) => {
         reply_markup: {
             inline_keyboard: [
                 /* Inline buttons. 2 side-by-side */
-                [{text: "With an interval of 3 hours", callback_data: "3"}, {
-                    text: "With an interval of 6 hours",
-                    callback_data: "6"
-                }]
+                [{text: "With an interval of 3 hours", callback_data: "3"}
+                    , {text: "With an interval of 6 hours", callback_data: "6"}]
             ]
         }
     })
